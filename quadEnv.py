@@ -3,7 +3,7 @@
 #--------------
 #
 #1.1) Set USE_PWM = 1 if you are giving inputs to the step() function as PWM pulses for each BLDC motors (1000us - 2000us)
-#1.2) Set USE_PID = 1 if you are using any of the PID controllers for benchmarking purposes
+#1.2) Set USE_PID = 1 if you are using any of the PID controllers for benchmarking purposes. If you want to switch over to any other algorithm in midst of the program execution from PID controller, set USE_PID = 0. If, again you want to use PID controller after your algorithm in midst of the program execution, make sure to call the rstEnv() function before you set the USE_PID flag to 1.
 #
 #2) The des_xyz(x_des, y_des, z_des) function is used to provide the desired positions, to which the drone must hover to and stabilize. You must call PID_position() function if you are using this.
 # 
@@ -23,7 +23,7 @@ import numpy as np
 from math import *
 
 class quadrotor:
-    def __init__(self, Ts = 1.0/50.0):
+    def __init__(self, Ts = 1.0/50.0, USE_PWM=0, USE_PID=0):
         self.Ts = Ts
         self.g = 9.81
         self.m = 1.4
@@ -106,7 +106,6 @@ class quadrotor:
         self.q_dot = 0.0
         self.r_dot = 0.0
         
-        self.input_vector = [0, 0, 0, 0]
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.o = 0.0
         
@@ -115,8 +114,13 @@ class quadrotor:
         
         self.time_elapse = 0.0
         
-        self.USE_PWM = 0
-        self.USE_PID = 0
+        self.USE_PID = USE_PID
+        self.USE_PWM = USE_PWM
+        if(self.USE_PWM == 1 and self.USE_PID == 0):
+            self.input_vector = [1000, 1000, 1000, 1000]
+            print(self.input_vector)
+        else:
+            self.input_vector = [0, 0, 0, 0]
     
     def des_xyz(self, x_des=1.0, y_des=1.0, z_des=1.0):
         self.x_des = x_des
@@ -125,7 +129,20 @@ class quadrotor:
         
     def step(self ,state, input_vector):
         #self.state = [phi, theta, psi, p, q, r, x_dot, y_dot, z_dot, x, y, z]
-        if(self.USE_PWM == 1):
+        if(self.USE_PWM == 1 and self.USE_PID == 0):
+            if(input_vector[0] < 1000.0):
+                input_vector[0] = 1000.0
+                print("Warning!! PWM value[0] less than 1000.0")
+            if(input_vector[1] < 1000.0):
+                input_vector[1] = 1000.0
+                print("Warning!! PWM value[1] less than 1000.0")
+            if(input_vector[2] < 1000.0):
+                input_vector[2] = 1000.0
+                print("Warning!! PWM value[2] less than 1000.0")
+            if(input_vector[3] < 1000.0):
+                input_vector[3] = 1000.0
+                print("Warning!! PWM value[3] less than 1000.0")
+            
             w1 = (855625.0/1000.0)*input_vector[0] - 855625.0
             w2 = (855625.0/1000.0)*input_vector[1] - 855625.0
             w3 = (855625.0/1000.0)*input_vector[2] - 855625.0
