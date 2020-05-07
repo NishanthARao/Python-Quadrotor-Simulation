@@ -18,8 +18,10 @@
 #11) The time_elapsed() displays the simulation time
 
 #============================================================================================================================================
-from math import *
 import time
+import numpy as np
+import scipy.integrate as integrate
+from math import *
 
 class quadrotor:
     def __init__(self, Ts = 1.0/50.0):
@@ -185,7 +187,7 @@ class quadrotor:
             self.state[2] = psi_dot*self.Ts + self.state[2]
             if(self.state[2] > self.psi_max): self.state[2] = self.psi_max
             if(self.state[2] < -self.psi_max): self.state[2] = -self.psi_max
-            
+           
             self.time_elapse += self.Ts
             
             return self.state
@@ -357,6 +359,16 @@ class quadrotor:
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.rstFlag = 0
         self.time_elapse = 0.0
+        if(self.USE_PWM == 1):
+            self.input_vector[0] = 1000.0;
+            self.input_vector[1] = 1000.0;
+            self.input_vector[2] = 1000.0;
+            self.input_vector[3] = 1000.0;
+        else:
+            self.input_vector[0] = 0.0;
+            self.input_vector[1] = 0.0;
+            self.input_vector[2] = 0.0;
+            self.input_vector[3] = 0.0;
     
     def pauseEnv(self):
         self.pauseFlag = 1
@@ -366,7 +378,6 @@ class quadrotor:
     
     def time_elapsed(self):
         return self.time_elapse
-            
         
         
         
